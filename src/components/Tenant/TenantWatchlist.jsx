@@ -1,9 +1,10 @@
 import React from "react"
 
-export default function TenantWatchlist(){
+
+export default function TenantHome(){
     return (
         <>
-        <h>im from tenant watchlist</h>
+        <h1>hello from tenant watchlist</h1>
         </>
     )
 }

@@ -1,9 +1,10 @@
 import React,{useRef} from "react";
 import {Link} from "react-router-dom"
+import axios from "axios"
 import {ToastContainer,toast} from "react-toastify"
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import {auth,db} from "./firebase"
-import {setDoc,doc} from "firebase/firestore" 
+// import { createUserWithEmailAndPassword } from "firebase/auth";
+// import {auth,db} from "./firebase"
+// import {setDoc,doc} from "firebase/firestore" 
 
 
 export default function Signup() {
@@ -29,7 +30,7 @@ export default function Signup() {
   }
   async function handleRegister(e){
   e.preventDefault()
-  console.log(InputValue.email, InputValue.password)
+  // console.log(InputValue.email, InputValue.password)
  
   let namePattern=/[\d$#^&*()!]/
   let emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -94,42 +95,32 @@ if (
   statusFlag.confirmpassword
 ) {
   console.log(InputValue)
-      createUserWithEmailAndPassword(auth,InputValue.email,InputValue.password)
-    .then((userCredential)=>{
-      const user=userCredential.user
-      if (user) {
-        setDoc(doc(db, "users", user.uid), {
-          firstName: InputValue.firstname,
-          lastName: InputValue.lastname,
-          email: InputValue.email,
-        });
-
-        toast.success("User Registered successfully")
-
-        setInputValue(()=>{
-          return {
-            firstname:"",
-            lastname:"",
-            email:"",
-            password:"",
-            confirmpassword:""
-          }
-        })
-        removeShadow(firstNameRef)
-        removeShadow(lastNameRef)
-        removeShadow(emailRef)
-        removeShadow(passwordRef)
-        removeShadow(confirmPasswordRef)
-
+  axios.post('http://localhost:5000/signup',InputValue)
+  .then((response)=>{
+    // console.log(response)
+    // console.log(response.data.message)
+    toast(response.data.message)
+    setInputValue(()=>{
+      return {
+      firstname:"",
+      lastname:"",
+      email:"",
+      password:"",
+      confirmpassword:""
       }
     })
-    .catch((err)=>{
-      toast.error(err.message)
-    })
+      
+    
+  })
+  .catch((err)=>{
+    // console.log(err)
+    // console.log(err.response)
+    toast.error(`Failed: ${err.response.data.error}`)
+  })
 }
 else{
-      console.error("error occured")
-      toast.error("else condition")
+      // console.error("error occured")
+      toast.error("All fields must be valid")
     }
   }
 

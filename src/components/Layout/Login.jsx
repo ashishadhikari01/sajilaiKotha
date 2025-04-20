@@ -1,8 +1,9 @@
 import React, { useState, useRef } from "react";
 import { Link,useNavigate } from "react-router-dom";
-import {auth} from "./firebase"
+import axios from "axios"
+// import {auth} from "./firebase"
 import {toast,ToastContainer} from "react-toastify"
-import { signInWithEmailAndPassword } from "firebase/auth";
+// import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function Login() {
   let [Data, setData] = useState({ email: "", password: "" });
@@ -15,7 +16,7 @@ export default function Login() {
     });
   }
     
-    let navigateToSystem=useNavigate()
+    let navigateToRoleChoose=useNavigate()
     let emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
   function greenShadow(field) {
@@ -63,24 +64,18 @@ export default function Login() {
     }
 
     if(statusFlag.email && statusFlag.password){
-        signInWithEmailAndPassword(auth,Data.email, Data.password)
-        .then(()=>{
-            toast.success("Signed In")
-            setData(()=>{
-                return {
-                    email:"",
-                    password:""
-                }
-            })
-            removeShadow(emailRef)
-            removeShadow(passwordRef)
-        setTimeout(()=>{
-          navigateToSystem("/tenant")
-        },1000)
+         axios.post('http://localhost:5000/login',Data)
+         .then((response)=>{
+           console.log('response sucessful:',response.data)
+           toast.success("Signed In")
+          setTimeout(()=>{
+            navigateToRoleChoose("/role")
+           },1000)
+          
         })
-        
         .catch((err)=>{
-            toast.error(err.message)
+          console.log(err.response)
+          toast.error(err.response.data)
         })
     }
   }

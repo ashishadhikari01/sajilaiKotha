@@ -1,62 +1,50 @@
-import React, { createContext } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React, { useState } from "react";
 import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import axios from "axios"
 
-import Layout from "./components/Layout";
-import Home from "./components/Home";
-import Login from "./components/Login";
-import Signup from "./components/Signup";
+import Layout from "./components/Layout/Layout";
+import Home from "./components/Layout/Home"
+import Login from "./components/Layout/Login"
+import Signup from "./components/Layout/Signup";
 
-import TenantLayout from "./components/system/TenantLayout";
-import TenantHome from "./components/Tenant/TenantHome";
+import RoleChoose from "./RoleChoose";
+import SystemRender from "./components/SystemRender";
+
 import TenantWatchlist from "./components/Tenant/TenantWatchlist";
+import TenantHome from "./components/Tenant/TenantHome";
 import TenantAccount from "./components/Tenant/TenantAccount";
-import TenantLogout from "./components/Tenant/TenantlLogout";
+import TenantLogout from "./components/Tenant/TenantLogout";
 
-import LandlordLayout from "./components/system/LandlordLayout";
-import LandlordDashboard from "./components/Landlord/LandlordDashboard";
+import LandlordHome from "./components/Landlord/LandlordDashboard";
 import LandlordListing from "./components/Landlord/LandlordListing";
-import LandlordAccount from "./components/Landlord/LandlordAccount";
-import LandlordLogout from "./components/Landlord/LandlordLogout";
-
-export const clickedContext = createContext();
 
 function App() {
-  const [isClicked, setIsClicked] = React.useState({
-    tenant:true,
-    landlord: false,
-  });
-
+  axios.defaults.withCredentials=true
   return (
     <>
-      <clickedContext.Provider value={{ isClicked, setIsClicked }}>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-            </Route>
+      <BrowserRouter>
+        <Routes>
 
-            {isClicked.tenant ? (
-              <Route element={<TenantLayout />} path="/tenant">
-                <Route path="/tenant" element={<TenantHome />} />
-                <Route path="/tenant/watchlist" element={<TenantWatchlist />} />
-                <Route path="/tenant/account" element={<TenantAccount />} />
-                <Route path="/tenant/logout" element={<TenantLogout />} />
-              </Route>
-            ) : (
-              <Route element={<LandlordLayout />} path="/landlord">
-                <Route path="/landlord" element={<LandlordDashboard />} />
-                <Route path="/landlord/listing" element={<LandlordListing />} />
-                <Route path="/landlord/account" element={<LandlordAccount />} />
-                <Route path="/landlord/logout" element={<LandlordLogout />} />
-                console.log("im from landlord route section")
-              </Route>
-            )}
-          </Routes>
-        </BrowserRouter>
-      </clickedContext.Provider>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Route> 
+
+          <Route path="/role" element={<RoleChoose />} />
+
+          <Route path="/role/:role" element={<SystemRender />}>
+            <Route path="/role/:role" element={<TenantHome />} />
+            <Route path="/role/:role/watchlist" element={<TenantWatchlist />} />
+            <Route path="/role/:role/account" element={<TenantAccount />} />
+            <Route path="/role/:role/logout" element={<TenantLogout />} />
+
+            <Route path="/role/:role/dashboard" element={<LandlordHome />} />
+            <Route path="/role/:role/listing" element={<LandlordListing />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </>
   );
 }
