@@ -35,7 +35,7 @@ export default function SideBar() {
                 className="font-bold text-lg px-6 py-2 hover:bg-stone-300 rounded-lg"
               >
                 {role === "tenant" && "watchlist"}
-                {role === "landlord" && "Listing"}
+                {role === "landlord" && "Listed"}
               </Link>
 
               

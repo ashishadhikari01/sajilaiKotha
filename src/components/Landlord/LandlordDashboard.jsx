@@ -1,22 +1,16 @@
 import React, { useState } from "react";
-
+import axios from "axios"
 export default function LandlordDashboard() {
   const [photos, setPhotos] = useState([]);
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files); // Convert FileList to Array
-    const fileURLs = files.map((file) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file); // Convert file to base64 string
-      return new Promise((resolve) => {
-        reader.onload = () => resolve(reader.result); // Resolve with the base64 string
-      });
-    });
-
-    Promise.all(fileURLs).then((urls) => {
-      setPhotos((prevPhotos) => [...prevPhotos, ...urls]); // Add new photo previews
-    });
-  };
+    const selectedFiles = Array.from(e.target.files)
+    const newPhotoUrls = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPhotos((prevPhotos) => [...prevPhotos, ...selectedFiles]);
+  console.log(newPhotoUrls)
+  }
+  console.log(photos)
+  // console.log(newPhotoUrls)
 
   const [spaceDetail, setSpaceDetail] = React.useState({
     spaceName: "",
@@ -42,6 +36,21 @@ export default function LandlordDashboard() {
         [name]:type==="checkbox"? checked: value
       };
     });
+  }
+  console.log(photos)
+  console.log({spaceDetail,photos})
+  
+  function publishSpace(e){
+    e.preventDefault()
+    const formData=new FormData()
+photos.forEach((photoFile) => {
+  formData.append("photos", photoFile); 
+});
+formData.append("spaceDetail", JSON.stringify(spaceDetail));
+console.log('hera tww',formData)
+    axios.post('http://localhost:5000/uploadspace',formData)
+    .then((res)=>console.log('error on then',res))
+    .catch((err)=>console.log('error on uploading img',err))
   }
   console.log(spaceDetail);
   return (
@@ -266,15 +275,19 @@ export default function LandlordDashboard() {
             {photos.map((photo, index) => (
               <img
                 key={index}
-                src={photo}
+                src={URL.createObjectURL(photo)}
                 alt={`Preview ${index + 1}`}
-                className="w-90 h-90 object-fit border-2 border-gray-500 rounded-xl"
+                className="w-90 h-auto object-contain border-2 border-gray-500 rounded-xl"
               />
             ))}
           </div>
-
+        {/* // URL.createObjectURL(file) */}
           <div className="text-xl font-semibold w-[40%]">
             <h1 className="mb-4 w-[40%]">Exact Location:</h1>
+          </div>
+
+          <div className="mb-4 w-[40%]" >
+          <button className="border border-green-500 px-4.5 py-1.5 bg-green-400 rounded-lg cursor-pointer text-white font-semibold font-xl hover:shadow-sm shadow-slate-500 active:scale-90 transition ease-in" onClick={publishSpace}>Publish</button>
           </div>
         </form>
         {/* </div> */}

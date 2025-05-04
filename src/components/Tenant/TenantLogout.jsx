@@ -3,21 +3,25 @@ import { useNavigate } from "react-router"
 import axios from 'axios'
 
 export default function TenantLogout(){
-    const logoutAndLeave=useNavigate('')
-    const stayOnSystem=useNavigate('')
+    // const logoutAndLeave=useNavigate('')
+    // const stayOnSystem=useNavigate('')
+    const navigate=useNavigate('')
 
    function sure(){
-    axios.post('http://localhost:5000/profile/logout', {}, { withCredentials: true })
-    .then(() => {
-        console.log('Logged out');
+    axios.post('http://localhost:5000/profile/logout',
+        { withCredentials: true })
+
+    .then((res) => {
+        console.log('Logged out',res);
+        // window.dispatchEvent(new Event('storageCleanup'));  
         window.location.href = "/";
-        logoutAndLeave('/')
+        // navigate('/')
     })
     .catch((err) => console.log('Logout error:', err));
    }
 
    function notNow(){
-      stayOnSystem('/role/tenant')
+      navigate('/role/tenant')
    }
     return (
         <>

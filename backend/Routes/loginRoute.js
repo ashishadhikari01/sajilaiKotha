@@ -52,11 +52,11 @@ router.post('/login',async (req,res)=>{
   }
 })
 
-router.post('/profile/logout',(req,res)=>{
-  res.clearCookie("token",{path:'/'})
- // res.json({message:logged out})
- console.log('logged out')
-})
+// router.post('/profile/logout',(req,res)=>{
+//   res.clearCookie("token",{path:'/'})
+//  // res.json({message:logged out})
+//  console.log('logged out')
+// })
 
 // console.clear()
 module.exports=router

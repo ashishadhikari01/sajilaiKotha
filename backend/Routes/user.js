@@ -6,6 +6,14 @@ const { userDetail } = require('../models/userDetailModel');
 const bcrypt=require('bcrypt');
 const { use } = require('react');
 
+// router.get('/profile/auth/verify',verifyToken, (req,res)=>{
+//   if(req.user) {
+//     console.log('checkkkk: true')
+//      return res.json({authenticated:true})
+//   }
+//   return res.json({authenticated:false})
+// })
+
 router.get('/profile', verifyToken, async (req, res) => {
   // res.send('uff')
   try {
@@ -55,7 +63,7 @@ router.put('/profile/updatepassword', verifyToken, async(req,res)=>{
   }
   catch(err){
     console.log(err.message)
-    return res.send(500).send('server error')
+    return res.status(500).send('server error')
   }
 })
 
@@ -133,10 +141,28 @@ router.get('/profile/pic',verifyToken,async(req,res)=>{
   }
 })
 
-// router.post('/profile/logout',(req,res)=>{
-//    res.clearCookie("token",{path:'/login'})
-//   // res.json({message:logged out})
-//   console.log('logged out')
-// })
+router.post('/profile/logout',(req,res)=>{
+  try{
+//    res.clearCookie("token",{
+//     httpOnly:true,
+//     secure:false,
+//     sameSite:'lax',
+//     path:'/login',
+//     maxAge:Date.now()
+//   })
+res.cookie('token', '', {
+  httpOnly: true,
+  secure: false,
+  sameSite: 'lax',
+  expires: new Date(0), // old date then cookie created cuzs cookie to expire.
+  path: '/',
+  
+});
+return res.send('yayy')
+}
+catch(err){
+  console.log('error on cookies clear:',err)
+}
+})
 
 module.exports = router;

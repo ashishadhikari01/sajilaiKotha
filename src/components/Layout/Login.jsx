@@ -5,7 +5,10 @@ import axios from "axios"
 import {toast,ToastContainer} from "react-toastify"
 // import { signInWithEmailAndPassword } from "firebase/auth";
 
-export default function Login() {
+export default function Login(props) {
+  // console.log(props)
+   const {isAuthenticated, setIsAuthenticated}=props
+
   let [Data, setData] = useState({ email: "", password: "" });
   function inputHandle(event) {
     setData((prev) => {
@@ -67,6 +70,7 @@ export default function Login() {
          axios.post('http://localhost:5000/login',Data)
          .then((response)=>{
            console.log('response sucessful:',response.data)
+           setIsAuthenticated(true)
            toast.success("Signed In")
           setTimeout(()=>{
             navigateToRoleChoose("/role")
