@@ -1,57 +1,85 @@
-import React, {} from "react";
-// import { clickedContext } from "../../App";
-import { useNavigate } from "react-router-dom";
-import { useParams,Link } from "react-router-dom";
-import TenantHome from "./Tenant/TenantHome";
-import LandlordDashboard from "./Landlord/LandlordDashboard"
-export default function TopHeader() {
-  // const { isClicked, setIsClicked } = useContext(clickedContext);
-  const navigate = useNavigate("");
-  let {role}=useParams()
-  console.log(role)
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import axios from "axios";
 
-  // function tenantClick() {
-  //   setIsClicked((prev) => {
-  //     return {
-  //       ...prev,
-  //       tenant: true,
-  //       landlord: false,
-  //     };
-  //   });
-  //   navigate("/tenant");
-  // }
+export default function TopHeader(props) {
+  const navigate = useNavigate();
+  let { role } = useParams();
+  // console.log(parameter)
+  // let { parameter.role } = useParams();
+  // console.log('yehaaa mujii',parameter)
 
-  // function landlordClick() {
-  //   setIsClicked((prev) => {
-  //     return {
-  //       ...prev,
-  //       landlord: true,
-  //       tenant: false,
-  //     };
-  //   });
-  //   navigate("/landlord");
-  // }
+  // console.log(parameter.role);
+  const [showPopup, setShowPopup] = useState(false);
+  const [location, setLocation] = useState("");
+  const [spacedetail, setSpaceDetail] = useState([]);
+  const [spaceType, setSpaceType] = useState([]);
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/allspaces")
+      .then((res) => {
+        setSpaceDetail(res.data);
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
+  if (spacedetail && spacedetail.length > 0) {
+    spacedetail.forEach((space, item) => {});
+  }
+
+  console.log(spacedetail);
+
+  function filterClick() {
+    setShowPopup(true);
+  }
+  // console.log(detail)
+  function handleLocationAccess() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Reverse geocoding with a free API (OpenStreetMap)
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await res.json();
+            setLocation(data.display_name || `${latitude}, ${longitude}`);
+          } catch (err) {
+            console.error("Error fetching location:", err);
+            setLocation(`${latitude}, ${longitude}`);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("Unable to fetch location.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  }
+
   return (
     <>
-      <div className="flex items-center w-[100%] h-30 sticky top-0 right-0 bg-stone-200 border-b-3 border-gray-400 min-h-30 max-h-30 flex-wrap z-100">
+      <div className="flex items-center w-[100%] h-30 fixed top-0 right-0 bg-stone-200 border-b-3 border-gray-400 min-h-30 max-h-30 flex-wrap z-100 ">
         <div className="flex justify-between items-center mx-auto w-[95%]">
-          <div className="flex flex-wrap gap-x-2 p-2 border-2 border-gray-300 rounded-xl cursor-pointer bg-zinc-50  text-wrap hover:bg-zinc-200 hover:border-2 hover:border-gray-500 ">
-            <img src="/icons8-filter-100.png" width={25} height={25} />
-            <p className="text-lg text-wrap">Filters</p>
-          </div> 
-
           <div>
-            <input
-              type="text"
-              placeholder="Search For Location"
-              className="border w-70 h-10 p-1 rounded-lg bg-white border-2 border-gray-300 focus:border-blue-300"
-            />
+            <h1 className="text-2xl font-bold text-center">Sajilai Kotha</h1>
           </div>
 
           <div className="flex gap-x-5 text-xl">
-            <Link to={`/role/tenant`}><button className={`p-2 rounded-xl transition-all duration-200 ease-in border-2 border-gray-400 bg-zinc-100 hover:border-2 hover:border-gray-500 hover:bg-zinc-200 cursor-pointer }`}>Tenant</button></Link>
-            
-            <Link to={`/role/landlord/dashboard`}><button className={`p-2 rounded-xl transition-all duration-200 ease-in border-2 border-gray-400 bg-zinc-100 hover:border-2 hover:border-gray-500 hover:bg-zinc-200 cursor-pointer } `}>Landlord</button></Link>
+            <Link to={`/role/tenant`}>
+              <button className="p-2 rounded-xl border-2 border-gray-400 bg-zinc-100 hover:border-gray-500 hover:bg-zinc-200">
+                Tenant
+              </button>
+            </Link>
+
+            <Link to={`/role/landlord/dashboard`}>
+              <button className="p-2 rounded-xl border-2 border-gray-400 bg-zinc-100 hover:border-gray-500 hover:bg-zinc-200">
+                Landlord
+              </button>
+            </Link>
           </div>
         </div>
       </div>

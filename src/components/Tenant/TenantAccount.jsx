@@ -75,7 +75,10 @@ export default function TenantAccount(){
           function handleSave() {
             
             axios.put('http://localhost:5000/profile/update', userData.updatedData)
-              .then(()=>console.log('updated sucessfully'))
+              .then(()=>{
+                console.log('updated sucessfully')
+                window.location.reload()
+              })
               .catch((err)=>console.error('error on updating:', err.message))
             setUserData((prev) => {
               return {
@@ -104,7 +107,7 @@ export default function TenantAccount(){
             formData.append('profilePic',file)
             axios.post('http://localhost:5000/profile/updateProfilePic',formData)
             .then((res)=>{
-              
+              window.location.reload()
               console.log('image send',res)
             })
             .catch((err)=>console.log('err on sending',err))

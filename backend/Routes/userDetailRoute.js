@@ -32,8 +32,8 @@ router.post('/signup',async (req,res)=>{
           firstname,
           lastname,
           email,
-          password:hashedPassword// ⚠️ store hashed passwords in real apps!
-        });
+          password:hashedPassword  // store hashed passwords in real apps
+        })
     
         const savedUser = await newUser.save();
         res.status(201).json({ message: 'User registered successfully', user: savedUser });

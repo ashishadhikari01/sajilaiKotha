@@ -23,7 +23,7 @@ export default function LandlordListing() {
   }
   return (
     <>
-      {listedSpace.length < 0 && <h1>loading...</h1>}
+      {listedSpace.length === 0 && <h1 className="font-semibold italic text-2xl">No Spaces have been listed</h1>}
 
       <div className="flex gap-4 flex-wrap mt-5 mb-5 ">
         {listedSpace.map((item) => {

@@ -17,7 +17,7 @@ export default function SystemLayout(){
         <div className="flex h-screen gap-x-20">   
            {/* <TopHeader  />  */}
           <div className="fixed left-0 top-30  h-screen w-[13%]"><SideBar/></div>
-          <div className="ml-[13%] w-[calc(100%-13%)] h-screen overflow-auto"><Outlet/></div>
+          <div className="ml-[13%] w-[calc(100%-13%)] h-screen pt-30"><Outlet/></div>
 
         
         </div>

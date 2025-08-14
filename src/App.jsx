@@ -16,6 +16,7 @@ import TenantWatchlist from "./components/Tenant/TenantWatchlist";
 import TenantHome from "./components/Tenant/TenantHome";
 import TenantAccount from "./components/Tenant/TenantAccount";
 import TenantLogout from "./components/Tenant/TenantLogout";
+import TenantSpaceDetail from "./components/Tenant/TenantSpaceDetail"
 
 import LandlordHome from "./components/Landlord/LandlordDashboard";
 import LandlordListing from "./components/Landlord/LandlordListing";
@@ -47,6 +48,7 @@ function App() {
 
           <Route path="/role/:role" element={<SystemRender />}>
             <Route path="/role/:role" element={<TenantHome />} />
+            <Route path="/role/:role/:space_id" element={<TenantSpaceDetail/>}></Route>
             <Route path="/role/:role/watchlist" element={<TenantWatchlist />} />
             <Route path="/role/:role/account" element={<TenantAccount />} />
             <Route path="/role/:role/logout" element={<TenantLogout />} />

@@ -11,8 +11,9 @@ export default function SideBar() {
   return (
     <>
       <div className="flex flex-col border-r-3 border-gray-400 w-[13%]  bg-stone-200 h-screen flex-shrink-0 flex-grow-0 fixed left-0 top-30">
+        
         <div className="flex flex-col justify-center w-full h-25">
-          <p className="text-2xl font-bold text-center">Sajilai Kotha</p>
+          <p className="text-2xl font-bold text-center">Navigation</p>
         </div>
 
         <div className="flex flex-col pt-2 mx-auto w-[90%] gap-y-5">

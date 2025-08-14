@@ -9,7 +9,7 @@ export default function RoleChoose(){
     return (
       <>
       <div className="flex flex-col items-center justify-center h-screen">
-        <h1>Choose your role:</h1>
+        <h1>Choose your role for now</h1>
         <div className="flex gap-x-5 mt-7">
             <Link to={`/role/${role.tenant}`}><button className="border p-5 cursor-pointer active:bg-red-400">Tenant</button></Link>
             <Link to={`/role/${role.landlord}`}><button className="border p-5 cursor-pointer active:bg-red-400">Landlord</button></Link>

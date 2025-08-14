@@ -1,16 +1,31 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, Link, useNavigate} from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function LandlordListingDetails() {
-  const [specificHandleUpdateDetail, setSpecificHandleUpdateDetail] = useState([]);
+  const [specificHandleUpdateDetail, setSpecificHandleUpdateDetail] = useState(
+    []
+  );
+  let photos=JSON.parse(JSON.stringify(specificHandleUpdateDetail?.photos || []))
+  // const [newPhotos,setNewPhotos]=useState()
+  // console.log(manuplatePhotos)
+  console.log(photos)
+
+  const naviagteToList = useNavigate();
+  const reloadUpdate = useNavigate();
+  const [feedback, setFeedback] = useState({
+    deleteFeedback: "",
+    updateFeedback: "",
+    photoFeedback:''
+  });
+  // console.log(feedback)
   if (specificHandleUpdateDetail.length < 0) {
     return <p>loading...</p>;
   }
 
   let getParams = useParams();
   let spaceId = getParams.item_id;
-  console.log(spaceId);
+  // console.log(spaceId);
   console.log(specificHandleUpdateDetail);
   useEffect(() => {
     axios
@@ -20,7 +35,7 @@ export default function LandlordListingDetails() {
         },
       })
       .then((res) => {
-        console.log("then", res);
+        // console.log("then", res);
         setSpecificHandleUpdateDetail(res.data.space);
       })
       .catch((err) => console.log("error", err));
@@ -31,61 +46,135 @@ export default function LandlordListingDetails() {
     // console.log(`${key}: ${specificHandleUpdateDetail.amenities[key]}`)
     if (specificHandleUpdateDetail.amenities[key]) {
       availableamenities.push(key);
-      console.log(key);
+      // console.log(key);
     }
   }
   const [updateDetail, setUpdateDetail] = useState({
-    s_id:spaceId,
+    s_id: spaceId,
     s_name: "",
     s_description: "",
     s_rent: "",
     s_address: "",
     s_phone: "",
     s_type: "",
-    onTapWater:false,
-    wifi:true,
-    balcony:false,
-    petFriendly:false,
-    airCondition:false,
-    parkingTwoWheeler:false,
-    parkingFourWheeler:false
+    onTapWater: false,
+    wifi: false,
+    balcony: false,
+    petFriendly: false,
+    airCondition: false,
+    parkingTwoWheeler: false,
+    parkingFourWheeler: false,
+    photos:[]
   });
-  console.log(updateDetail)
+  console.log(updateDetail.photos)
+  // console.log(updateDetail);
 
   function handleUpdateDetail(event) {
-    const {name,value,type,checked}=event.target
+    const { name, value, type, checked } = event.target;
     setUpdateDetail((prev) => {
       return {
         ...prev,
-        [name]: type==='checkbox'? checked:value,
+        [name]: type === "checkbox" ? checked : value,
       };
     });
   }
-  function updateSpace(){
-    axios.put('http://localhost:5000/updateSpaceDetails',updateDetail)
-    .then((res)=>console.log('from update res',res))
-    .catch((err)=>console.log('error on update  catch',err))
+
+  function updateSpace() {
+    console.log("heree");
+    axios
+      .put("http://localhost:5000/updateSpaceDetails", updateDetail)
+      .then((res) => {
+        console.log("then", res);
+        console.log("good msg");
+        naviagteToList(`/role/landlord/listing/${spaceId}`);
+        // },2000)
+      })
+      .catch((err) => console.log("error on update  catch", err));
   }
-  function deleteSpace(){
-    console.log('delspac')
-    axios.delete('http://localhost:5000/deleteSpace',{
-      data:{
-      spaceId:spaceId
-    }
-  })
-    .then((res)=>{
-      console.log('from delete space', res)
-      useNavigate('/')
+
+  function deleteSpace() {
+    console.log("delspac");
+    axios
+      .delete("http://localhost:5000/deleteSpace", {
+        data: {
+          spaceId: spaceId,
+        },
+      })
+      .then((res) => {
+        console.log("from delete space", res);
+        setFeedback((prev) => {
+          return {
+            ...prev,
+            deleteFeedback: "Space Deleting...",
+          };
+        });
+        setTimeout(() => {
+          naviagteToList("/role/landlord/listing");
+        }, 2000);
+      })
+      .catch((err) => console.log("error on delete space", err));
+  }
+
+  // const manuplatePhotos = [...(specificHandleUpdateDetail.photos || [])];
+
+  function handleImageFilter(index) {
+    setSpecificHandleUpdateDetail((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index),
+    }));
+  }
+  // console.log(manuplatePhotos);
+  //  let combinedPhotos=[...photos, ...updateDetail.photos] 
+  // const [combinedPhotos, setCombinedPhotos]=useState([...photos,...updateDetail.photos])
+  function updatePhoto(e){
+    const newfiles=Array.from(e.target.files)
+    const newPhotoUrl=newfiles.map((file)=>URL.createObjectURL(file))
+    
+    // if(updateDetail.photos.length + photos.length <= 4){
+      setUpdateDetail((prev)=>{
+      return{
+        ...prev,
+        photos:newfiles
+      }
     })
-    .catch((err)=>console.log('error on delete space',err))
+    // }
+  //   else{
+  //       setFeedback((prev)=>{ 
+  //         return {
+  //           ...prev,
+  //           photoFeedback:'Delete photos before adding'
+  //         }
+  //       })
+  //   }
   }
+
+  // let combinedPhotos=[...photos,...newPhotos]
+
+  useEffect(()=>{
+    setTimeout(()=>{
+     setFeedback((prev)=>{
+      return {
+        ...prev,
+        photoFeedback:''
+      }
+     })
+    },2000)
+  },[feedback.photoFeedback])
+  // console.log(newPhotos)
+  // console.log(specificHandleUpdateDetail.photos)
   return (
     <>
       <div className="bg-blue-50 pb-7">
-        <a href="#updateDetail" className="sticky top-5 left-[95%]">
+        <a
+          href="#updateDetail"
+          className="sticky top-5 left-[95%] p-1 border-1 border-green-500"
+        >
           Down
         </a>
         <div className="mx-auto w-[70%] pt-3 pb-3" id="handleUpdateDetail">
+          <h1 className="mb-2 text-2xl font-semibold p-3 bg-stone-300 rounded-xl">
+            Space Details
+          </h1>
           <div className="mb-2">
             <p className="text-lg font-semibold pb-1">Space Title</p>
             <input
@@ -121,7 +210,10 @@ export default function LandlordListingDetails() {
             <div className="flex gap-3">
               {availableamenities.map((item) => {
                 return (
-                  <p className="italic px-3 py-2 border-2 border-white rounded-lg bg-zinc-300  text-lg">
+                  <p
+                    className="italic px-3 py-2 border-2 border-white rounded-lg bg-zinc-300  text-lg"
+                    key={item.id}
+                  >
                     {item}
                   </p>
                 );
@@ -178,12 +270,17 @@ export default function LandlordListingDetails() {
         {/* update details starts from here */}
 
         <div className="mx-auto w-[70%] pt-3 pb-3" id="updateDetail">
+          <h1 className="mb-2 mt-2 text-2xl font-semibold p-3 bg-stone-300 rounded-xl">
+            Update Details
+          </h1>
           <div className="mb-2">
             <p className="text-lg font-semibold pb-1">Space Title</p>
             <input
               type="text"
               name="s_name"
-              value={updateDetail.s_name || specificHandleUpdateDetail.spacename}
+              value={
+                updateDetail.s_name || specificHandleUpdateDetail.spacename
+              }
               onChange={handleUpdateDetail}
               className="border-3 border-zinc-400 outline-none p-2 w-[100%] rounded-lg text-lg italic"
             />
@@ -196,7 +293,8 @@ export default function LandlordListingDetails() {
               rows="5"
               name="s_description"
               value={
-                updateDetail.s_description || specificHandleUpdateDetail.spacedetail
+                updateDetail.s_description ||
+                specificHandleUpdateDetail.spacedetail
               }
               onChange={handleUpdateDetail}
               className="border-3 border-zinc-400 outline-none p-2 w-[100%] rounded-lg text-lg italic"
@@ -277,8 +375,8 @@ export default function LandlordListingDetails() {
                 type="checkbox"
                 id="wifi"
                 name="wifi"
-                  checked={handleUpdateDetail.wifi}
-                  onChange={handleUpdateDetail}
+                checked={handleUpdateDetail.wifi}
+                onChange={handleUpdateDetail}
                 className="scale-150"
               />
               <label htmlFor="wifi">Wifi</label>
@@ -289,8 +387,8 @@ export default function LandlordListingDetails() {
                 type="checkbox"
                 id="balcony"
                 name="balcony"
-                  checked={handleUpdateDetail.balcony}
-                  onChange={handleUpdateDetail}
+                checked={handleUpdateDetail.balcony}
+                onChange={handleUpdateDetail}
                 className="scale-150"
               />
               <label htmlFor="balcony">Balcony</label>
@@ -302,7 +400,7 @@ export default function LandlordListingDetails() {
                 id="pet-fiendly"
                 name="petFriendly"
                 checked={handleUpdateDetail.petFriendly}
-                  onChange={handleUpdateDetail}
+                onChange={handleUpdateDetail}
                 className="scale-150"
               />
               <label htmlFor="pet-friendly">Pet Friendly</label>
@@ -361,7 +459,9 @@ export default function LandlordListingDetails() {
             <input
               type="text"
               name="s_address"
-              value={updateDetail.s_address || specificHandleUpdateDetail.address}
+              value={
+                updateDetail.s_address || specificHandleUpdateDetail.address
+              }
               onChange={handleUpdateDetail}
               className="border-3 border-zinc-400 outline-none p-2 w-[100%] rounded-lg text-lg italic"
             />
@@ -372,17 +472,120 @@ export default function LandlordListingDetails() {
             <input
               type="text"
               name="s_phone"
-              value={updateDetail.s_phone || specificHandleUpdateDetail.phonenumber}
+              value={
+                updateDetail.s_phone || specificHandleUpdateDetail.phonenumber
+              }
               onChange={handleUpdateDetail}
               className="border-3 border-zinc-400 outline-none p-2 w-[100%] rounded-lg text-lg italic"
             />
           </div>
 
-          <div className="flex gap-x-7 mt-5">
-          <button className="border border-green-500 px-4.5 py-1.5 bg-green-400 rounded-lg cursor-pointer text-white font-semibold font-xl hover:shadow-sm shadow-slate-500 active:scale-90 transition ease-in" onClick={updateSpace}>Update Space</button>
-          <button className="border border-red-500 px-4.5 py-1.5 bg-red-400 rounded-lg cursor-pointer text-white font-semibold font-xl hover:shadow-sm shadow-slate-500 active:scale-90 transition ease-in" onClick={deleteSpace} >Delete Space</button>
+          <div className="mb-7">
+            <p className="text-lg font-semibold pb-2">Photos</p>
+            <label
+              htmlFor="fileUpload"
+              className="border-3 border-zinc-400 outline-none p-2 w-[100%] rounded-lg text-lg italic cursor-pointer"
+              
+            >
+              Click to upload photos
+            </label>
+            <input id="fileUpload" type="file" multiple className="hidden" onChange={updatePhoto} />
+            <p className="text-xl font-semibold text-red-500 mt-2">{feedback.photoFeedback}</p>
+          </div>
+          
+
+          <div className="mb-2">
+            <div className="flex justify-center w-full pb-15">
+              <div className="flex flex-wrap gap-17 w-[100%]">
+                {photos.map((photo, index) => {
+                  return (
+                    <div className="relative">
+                      <div className="" key={index}>
+                        <img
+                          key={index}
+                          src={`http://localhost:5000${photo}`}
+                          // 
+                          className="w-113 h-auto object-contain border-3 border-gray-400 rounded-xl"
+                        />
+                        <button
+                          onClick={() => handleImageFilter(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white text-md rounded-lg p-1 cursor-pointer italic hover:scale-103 active:scale-97"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {updateDetail?.photos.map((photo,index)=>{
+                  return (
+                    <div className="relative">
+                      <div className="" key={index}>
+                        <img
+                          key={index}
+                          src={URL.createObjectURL(photo)}
+                          // 
+                          className="w-113 h-auto object-contain border-3 border-gray-400 rounded-xl"
+                        />
+                        <button
+                          onClick={() => handleImageFilter(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white text-md rounded-lg p-1 cursor-pointer italic hover:scale-103 active:scale-97"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {/* {specificHandleUpdateDetail.photos?.map((photo, index) => {
+                  return (
+                    <div className="relative" key={index}>
+                      <img
+                        key={index}
+                        src={`http://localhost:5000${photo}`}
+                        className="w-113 h-auto object-contain border-3 border-gray-400 rounded-xl"
+                        // object-contain w-[45%] h-auto border-3 border-zinc-400 rounded-lg shadow-lg
+                      />
+                      <button
+                        onClick={() => handleImageFilter(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white text-md rounded-lg p-1 cursor-pointer italic hover:scale-103 active:scale-97"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  );
+                })} */}
+              </div>
+            </div>
           </div>
 
+          {feedback.deleteFeedback && (
+            <p className={`mb-1 text-xl font-semibold text-red-500`}>
+              {feedback.deleteFeedback}
+            </p>
+          )}
+
+          {feedback.updateFeedback && (
+            <p className="mb-1 text-xl font-semibold text-green-500">
+              {feedback.updateFeedback}
+            </p>
+          )}
+          <div className="flex gap-x-7 mt-5">
+            <button
+              className="border border-green-500 px-4.5 py-1.5 bg-green-400 rounded-lg cursor-pointer text-white font-semibold font-xl hover:shadow-sm shadow-slate-500 active:scale-90 transition ease-in"
+              onClick={updateSpace}
+            >
+              Update Space
+            </button>
+            <button
+              className="border border-red-500 px-4.5 py-1.5 bg-red-400 rounded-lg cursor-pointer text-white font-semibold font-xl hover:shadow-sm shadow-slate-500 active:scale-90 transition ease-in"
+              onClick={deleteSpace}
+            >
+              Delete Space
+            </button>
+          </div>
         </div>
       </div>
     </>

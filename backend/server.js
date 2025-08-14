@@ -4,6 +4,7 @@ const mongoose=require('mongoose')
 const userDetailRoute=require('./Routes/userDetailRoute')
 const loginRoute=require('./Routes/loginRoute')
 const user=require('./Routes/user')
+const watchlist=require('./Routes/watchlist')
 const cookieParse=require('cookie-parser')
 // const bodyParser=require('body-parser')
 // const cloudinary=require('../backend/CloudinaryConfig/cloudinary')
@@ -26,7 +27,8 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(cookieParse())
 app.use(userDetailRoute)
 app.use(loginRoute)
-app.use(user)
+app.use(user)  
+app.use(watchlist)
 app.use(uploadspace)
 app.use('/uploads', express.static('uploads'));
 // app.use('/spaceuploads', express.static('spaceuploads'));

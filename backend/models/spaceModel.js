@@ -17,7 +17,8 @@ const spaceSchema=new mongoose.Schema({
     rent:{type:Number, required:true},
     address:{type:String, required:true},
     phonenumber:{type:Number, required:true},
-    photos:{type:[String], required:true }
+    photos:{type:[String], required:true },
+    exactPosition:{type:String, required:true}
 })
 
 const spacedetail=mongoose.model('spacedetail',spaceSchema)

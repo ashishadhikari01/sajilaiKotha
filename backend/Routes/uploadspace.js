@@ -5,6 +5,7 @@ const router = express.Router();
 const verifyToken = require("../middleware/authMiddleWare");
 const { uploadSpace } = require("../middleware/uploadSpaceMiddle");
 const { userDetail } = require("../models/userDetailModel");
+const { verify } = require("crypto");
 
 
 router.get('/uploadspace',(req,res)=>{
@@ -50,6 +51,7 @@ router.post("/uploadspace", verifyToken, uploadSpace, async (req, res) => {
       address: spaceDetail.spaceAddress,
       phonenumber: spaceDetail.spacePhone,
       photos: photoUrls,
+      exactPosition:spaceDetail.exactPosition
     });
 
     await newSpace.save();
@@ -131,6 +133,33 @@ router.delete('/deleteSpace', verifyToken, async(req,res)=>{
   catch(err){
     console.log('error on space delete',err)
     res.send('server error on deleting space')
+  }
+})
+// tenant home starts from here
+
+router.get('/allspaces',verifyToken, async (req,res)=>{
+  try{
+  const allspace=await spacedetail.find({})
+  if(!allspace) return res.status(404).send('spaces not found')
+   res.status(200).send(allspace)
+  }
+  catch(err){
+   console.log('error on allspace server',err)
+  }
+})
+
+router.get('/tenantspecificspace',verifyToken, async(req,res)=>{
+  try{
+  // console.log(req.query)
+  // console.log(req.query.space_id)
+  const space=await spacedetail.find({_id:req.query.space_id})
+  if(!space) res.status(404).send('space not found')
+  res.send({space})
+console.log(space)
+  }
+  catch(err){
+  console.log('error on tenantSpecificSpace',err)
+  res.status(500).send('error on server')
   }
 })
 module.exports = router;
