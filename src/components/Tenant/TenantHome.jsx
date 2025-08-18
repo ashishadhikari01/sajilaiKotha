@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import TopHeader from "../TopHeader";
 
 export default function TenantHome() {
@@ -93,11 +95,18 @@ export default function TenantHome() {
 
   const [filterdialog, setFilterDialog] = useState(false);
   const [filteredSpaces, setFilteredSpaces] = useState([]);
-  const [filterFeedback,setFilterFeedback]=useState(false)
+  const [filterFeedback, setFilterFeedback] = useState(false);
+  // const [location, setLocation] = useState("");
+  const [userChooseFilter, setUserChoose] = useState({
+    spacetype: "",
+    pricerange: "",
+    location: "",
+  });
+  const [locationSearch, setLocationSearch] = useState("");
+
   function filterSpace() {
     setFilterDialog(!filterdialog);
   }
-  const [location, setLocation] = useState("");
 
   const handleLocationAccess = () => {
     if (navigator.geolocation) {
@@ -105,7 +114,12 @@ export default function TenantHome() {
         (position) => {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
-          setLocation(`${lat}, ${lon}`);
+          setUserChoose((prev) => {
+            return {
+              ...prev,
+              location: `${lat}, ${lon}`,
+            };
+          });
         },
         (error) => {
           console.error("Error getting location:", error.code, error.message);
@@ -118,63 +132,124 @@ export default function TenantHome() {
     }
   };
 
-  let [userChooseFilter, setUserChoose] = useState({
-    spacetype: "",
-    pricerange: "",
-  });
   function handleFilter(event) {
-    const {name,type,checked,value}=event.target
-    setUserChoose((prev)=>{
+    const { name, type, checked, value } = event.target;
+    setUserChoose((prev) => {
       return {
         ...prev,
-         [name]:type==='checkbox'? checked:value
-      }
-    })
+        [name]: type === "checkbox" ? checked : value,
+      };
+    });
   }
-  console.log(userChooseFilter)
+  // console.log(userChooseFilter);
+
+  //Radius check algorithm
+  
+  function getDistanceFromLatLon (lat1, lon1, lat2, lon2) {
+    const R = 6371; // radius of Earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // distance in km
+  }
+
+  let locationFilteredSpaces
 
 function submitFilter() {
+  // close filter dialog after 1s
   setTimeout(() => {
-    setFilterDialog(prev => !prev);
-  },1000);
+    setFilterDialog((prev) => !prev);
+  }, 3000);
 
-  const obtainedSpaces = spaces.filter(item => {
-    const matchType = item.spacetype === userChooseFilter.spacetype;
-    let matchPrice = false;
+  let filtered = spaces; // start with all spaces
 
-    if (userChooseFilter.pricerange === 'less than 6k') {
-      matchPrice = item.rent < 6000;
-    } else if (userChooseFilter.pricerange === 'between 6k & 10k') {
-      matchPrice = item.rent >= 6000 && item.rent < 10000;
-    } else if (userChooseFilter.pricerange === 'between 10k & 15k') {
-      matchPrice = item.rent >= 10000 && item.rent < 15000;
-    } else if (userChooseFilter.pricerange === 'more than 15k') {
-      matchPrice = item.rent >= 15000;
-    }
+  // ---- LOCATION FILTER ----
+  if (userChooseFilter.location) {
+    const [lat, lon] = userChooseFilter.location.split(",").map(Number);
 
-    return matchType && matchPrice
-  });
-  // console.log(obtainedSpaces);
-  setFilteredSpaces(obtainedSpaces);
-
-  if(obtainedSpaces.length===0){
-    setFilterFeedback(true)
-    setTimeout(()=>{
-  setFilterFeedback(false)
-    },700)
+    filtered = filtered.filter((item) => {
+      if (!item?.exactPosition) return false; // skip if missing location
+      const [itemLat, itemLon] = item.exactPosition.split(",").map(Number);
+      const distance = getDistanceFromLatLon(lat, lon, itemLat, itemLon);
+      return distance <=5;
+    });
   }
 
-}
-  function resetFilter(){
-    setFilteredSpaces('')
-    setUserChoose(()=>{
-      return {
-        spacetype:"",
-        pricerange:""
+  // ---- TYPE + PRICE FILTER ----
+  if (userChooseFilter.spacetype || userChooseFilter.pricerange) {
+    filtered = filtered.filter((item) => {
+      const matchType = userChooseFilter.spacetype
+        ? item.spacetype === userChooseFilter.spacetype
+        : true;
+
+      let matchPrice = true;
+      if (userChooseFilter.pricerange === "less than 6k") {
+        matchPrice = item.rent < 6000;
+      } else if (userChooseFilter.pricerange === "between 6k & 10k") {
+        matchPrice = item.rent >= 6000 && item.rent < 10000;
+      } else if (userChooseFilter.pricerange === "between 10k & 15k") {
+        matchPrice = item.rent >= 10000 && item.rent < 15000;
+      } else if (userChooseFilter.pricerange === "more than 15k") {
+        matchPrice = item.rent >= 15000;
       }
-    })
+
+      return matchType && matchPrice;
+    });
   }
-//  console.log(filteredSpaces)
+
+  // ---- UPDATE STATE ----
+  setFilteredSpaces(filtered);
+
+  // ---- FEEDBACK IF EMPTY ----
+  if (filtered.length === 0) {
+    setFilterFeedback(true);
+    setTimeout(() => setFilterFeedback(false),2000);
+  }
+}
+  console.log('here we are:',filteredSpaces)
+  
+  function resetFilter() {
+    setFilteredSpaces("");
+    setUserChoose(() => {
+      return {
+        spacetype: "",
+        pricerange: "",
+        location: "",
+      };
+    });
+  }
+
+  function handleLocationSearch(event) {
+    const { value } = event.target;
+    setLocationSearch((prev) => value);
+    // console.log(name);
+  }
+  useEffect(() => {
+    setTimeout(() => {
+      let locationSearchSpace = spaces.filter(
+        (item) =>
+          item.address.startsWith(locationSearch) ||
+          item.address === locationSearch
+      );
+      if (locationSearch) {
+        setFilteredSpaces(locationSearchSpace);
+      } else {
+        setFilteredSpaces("");
+      }
+    }, 1200);
+  }, [locationSearch]);
+  //  useEffect(()=>{
+
+  //  })
+  //  console.log(filteredSpaces)
   if (!spaces) return <p>Loading...</p>;
 
   return (
@@ -191,8 +266,11 @@ function submitFilter() {
         <div className="flex justify-center flex-1">
           <input
             type="text"
+            name="location-search"
+            value={locationSearch}
             placeholder="Search For Location"
             className="border w-110 h-10 p-5 rounded-lg bg-white border-3 border-gray-400  focus:border-gray-900 outline-none"
+            onChange={handleLocationSearch}
           />
         </div>
       </div>
@@ -208,10 +286,10 @@ function submitFilter() {
                     type="radio"
                     id="singleroom"
                     name="spacetype"
-                    value='single room'
+                    value="single room"
                     onChange={handleFilter}
                     className="scale-150"
-                    checked={userChooseFilter.spacetype==='single room'}
+                    checked={userChooseFilter.spacetype === "single room"}
                   />
                   <label htmlFor="singleroom">SingleRoom</label>
                 </div>
@@ -223,8 +301,8 @@ function submitFilter() {
                     name="spacetype"
                     onChange={handleFilter}
                     className="scale-150"
-                    value='double room'
-                    checked={userChooseFilter.spacetype==='double room'}
+                    value="double room"
+                    checked={userChooseFilter.spacetype === "double room"}
                   />
                   <label htmlFor="doubleroom">DoubleRoom</label>
                 </div>
@@ -236,8 +314,8 @@ function submitFilter() {
                     name="spacetype"
                     onChange={handleFilter}
                     className="scale-150"
-                    value='flat'
-                    checked={userChooseFilter.spacetype==='flat'}
+                    value="flat"
+                    checked={userChooseFilter.spacetype === "flat"}
                   />
                   <label htmlFor="flat">Flat</label>
                 </div>
@@ -249,8 +327,8 @@ function submitFilter() {
                     name="spacetype"
                     onChange={handleFilter}
                     className="scale-150"
-                    value='house'
-                    checked={userChooseFilter.spacetype==='house'}
+                    value="house"
+                    checked={userChooseFilter.spacetype === "house"}
                   />
                   <label htmlFor="house">House</label>
                 </div>
@@ -267,8 +345,8 @@ function submitFilter() {
                     name="pricerange"
                     className="scale-150"
                     onChange={handleFilter}
-                    value='less than 6k'
-                    checked={userChooseFilter.pricerange==='less than 6k'}
+                    value="less than 6k"
+                    checked={userChooseFilter.pricerange === "less than 6k"}
                   />
                   <lable htmlFor="lessthan6k">Less than 6k</lable>
                 </div>
@@ -281,7 +359,7 @@ function submitFilter() {
                     className="scale-150"
                     onChange={handleFilter}
                     value="between 6k & 10k"
-                    checked={userChooseFilter.pricerange==='between 6k & 10k'}
+                    checked={userChooseFilter.pricerange === "between 6k & 10k"}
                   />
                   <lable htmlFor="between6k10k">Between 6k & 10k</lable>
                 </div>
@@ -294,11 +372,13 @@ function submitFilter() {
                     className="scale-150"
                     onChange={handleFilter}
                     value="between 10k & 15k"
-                    checked={userChooseFilter.pricerange==='between 10k & 15k'}
+                    checked={
+                      userChooseFilter.pricerange === "between 10k & 15k"
+                    }
                   />
                   <lable htmlFor="between10k15k">Between 10k & 15k</lable>
                 </div>
- 
+
                 <div className="text-lg italic font-semibold flex gap-x-2 p-1">
                   <input
                     type="radio"
@@ -307,12 +387,10 @@ function submitFilter() {
                     className="scale-150"
                     onChange={handleFilter}
                     value="more than 15k"
-                    checked={userChooseFilter.pricerange==='more than 15k'}
+                    checked={userChooseFilter.pricerange === "more than 15k"}
                   />
                   <lable htmlFor="more15k">More than 15k</lable>
                 </div>
-
-
               </div>
             </div>
 
@@ -320,7 +398,7 @@ function submitFilter() {
 
             <input
               type="text"
-              value={location}
+              value={userChooseFilter.location}
               readOnly
               placeholder="Location will appear here"
               className="border w-full p-2 rounded-lg bg-gray-100 cursor-not-allowed"
@@ -332,17 +410,25 @@ function submitFilter() {
             >
               Allow Location Access
             </button>
-          
-          <p className="text-lg italic">{filterFeedback? 'No space available under filter condition':''}</p>
-            <button 
-            onClick={submitFilter}
-            className="mt-3 w-full bg-green-400 p-2 rounded-lg hover:bg-green-500 text-white cursor-pointer"
-            >Submit Filter</button>
 
-            <button 
-            onClick={resetFilter}
-            className="mt-3 w-full bg-red-400 p-2 rounded-lg hover:bg-red-500 text-white cursor-pointer"
-            >Reset Filter</button>
+            <p className="text-lg italic">
+              {filterFeedback
+                ? "No space available under filter condition,so showing default spaces"
+                : ""}
+            </p>
+            <button
+              onClick={submitFilter}
+              className="mt-3 w-full bg-green-400 p-2 rounded-lg hover:bg-green-500 text-white cursor-pointer"
+            >
+              Submit Filter
+            </button>
+
+            <button
+              onClick={resetFilter}
+              className="mt-3 w-full bg-red-400 p-2 rounded-lg hover:bg-red-500 text-white cursor-pointer"
+            >
+              Reset Filter
+            </button>
 
             <button
               onClick={() => setFilterDialog(!filterdialog)}
@@ -355,89 +441,93 @@ function submitFilter() {
       )}
 
       <div className="flex flex-wrap gap-5 w-full mt-5 mb-5 pl-6">
-        {(filteredSpaces.length>0? filteredSpaces:spaces)?.map((space, spaceIndex) => {
-          const photos = space.photos;
-          const currentPhotoIndex = currentIndexes[spaceIndex] || 0;
-          return (
-            <div
-              className="bg-slate-300 w-110 h-auto relative overflow-hidden shadow-[1px_1px_4px_1px_rgba(0,0,0,0.5)] rounded-lg cursor-pointer  hover:scale-102 transition-all ease-out duration-500 hover:shadow-[1px_1px_6px_1px_rgba(0,0,0,0.9)]"
-              key={spaceIndex}
-              // onMouseEnter={() => setIsHovered(true)}
-              // onMouseLeave={() => setIsHovered(false)}
-            >
-              {photos && photos.length > 0 && (
-                <img
-                  src={`http://localhost:5000${photos[currentPhotoIndex]}`}
-                  alt="space"
-                  className="object-content w-130 h-60 rounded-lg"
-                />
-              )}
-              <button
-                onClick={() => handlePrev(spaceIndex)}
-                className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full cursor-pointer"
+        {(filteredSpaces.length > 0 ? filteredSpaces : spaces)?.map(
+          (space, spaceIndex) => {
+            const photos = space.photos;
+            const currentPhotoIndex = currentIndexes[spaceIndex] || 0;
+            return (
+              <div
+                className="bg-slate-300 w-110 h-auto relative overflow-hidden shadow-[1px_1px_4px_1px_rgba(0,0,0,0.5)] rounded-lg cursor-pointer  hover:scale-102 transition-all ease-out duration-500 hover:shadow-[1px_1px_6px_1px_rgba(0,0,0,0.9)]"
+                key={spaceIndex}
+                // onMouseEnter={() => setIsHovered(true)}
+                // onMouseLeave={() => setIsHovered(false)}
               >
-                ‹
-              </button>
-              <button
-                onClick={() => handleNext(spaceIndex)}
-                className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full cursor-pointer"
-              >
-                ›
-              </button>
-
-              <div className="p-2">
-                <div
-                  className="flex justify-end"
-                  onClick={() => {
-                    if (!watchlistStatus[spaceIndex]) {
-                      addWatchList({
-                        spaceId: spaces[spaceIndex]._id,
-                        userId: spaces[spaceIndex].userid,
-                        spaceIndex,
-                      });
-                    }
-                  }}
-                  style={{
-                    cursor: watchlistStatus[spaceIndex] ? "default" : "pointer",
-                  }}
-                >
+                {photos && photos.length > 0 && (
                   <img
-                    src={
-                      watchlistStatus[spaceIndex]
-                        ? "/icons8-heart-fill-96.png"
-                        : " /icons8-heart-96.png"
-                    }
-                    width={35}
-                    height={35}
-                    alt="add to watchlist"
+                    src={`http://localhost:5000${photos[currentPhotoIndex]}`}
+                    alt="space"
+                    className="object-content w-130 h-60 rounded-lg"
                   />
-                </div>
-                <Link
-                  to={`/role/${role.tenant}/${space._id}`}
-                  state={{ index: spaceIndex }}
+                )}
+                <button
+                  onClick={() => handlePrev(spaceIndex)}
+                  className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full cursor-pointer"
                 >
-                  <div>
-                    <p className="text-lg font-semibold italic">
-                      {space.spacename}
-                    </p>
-                    <div className="flex  items-center justify-between w-[99%]">
-                      <p className="text-2xl font-semibold italic hover:text-red-600">
-                        Rs.
-                        <span className="italic text-lg font-semibold">
-                          {space.rent} monthly
-                        </span>
-                      </p>
-                      <p className="text-xl font-semibold italic">
-                        {space.spacetype}
-                      </p>
-                    </div>
-                    <p className="text-xl font-semibold">{space.address}</p>
+                  ‹
+                </button>
+                <button
+                  onClick={() => handleNext(spaceIndex)}
+                  className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full cursor-pointer"
+                >
+                  ›
+                </button>
+
+                <div className="p-2">
+                  <div
+                    className="flex justify-end"
+                    onClick={() => {
+                      if (!watchlistStatus[spaceIndex]) {
+                        addWatchList({
+                          spaceId: spaces[spaceIndex]._id,
+                          userId: spaces[spaceIndex].userid,
+                          spaceIndex,
+                        });
+                      }
+                    }}
+                    style={{
+                      cursor: watchlistStatus[spaceIndex]
+                        ? "default"
+                        : "pointer",
+                    }}
+                  >
+                    <img
+                      src={
+                        watchlistStatus[spaceIndex]
+                          ? "/icons8-heart-fill-96.png"
+                          : " /icons8-heart-96.png"
+                      }
+                      width={35}
+                      height={35}
+                      alt="add to watchlist"
+                    />
                   </div>
-                </Link>
+                  <Link
+                    to={`/role/${role.tenant}/${space._id}`}
+                    state={{ index: spaceIndex }}
+                  >
+                    <div>
+                      <p className="text-lg font-semibold italic">
+                        {space.spacename}
+                      </p>
+                      <div className="flex  items-center justify-between w-[99%]">
+                        <p className="text-2xl font-semibold italic hover:text-red-600">
+                          Rs.
+                          <span className="italic text-lg font-semibold">
+                            {space.rent} monthly
+                          </span>
+                        </p>
+                        <p className="text-xl font-semibold italic">
+                          {space.spacetype}
+                        </p>
+                      </div>
+                      <p className="text-xl font-semibold">{space.address}</p>
+                    </div>
+                  </Link>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          }
+        )}
       </div>
     </>
   );
