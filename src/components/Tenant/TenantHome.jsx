@@ -10,7 +10,18 @@ export default function TenantHome() {
   const [currentIndexes, setCurrentIndexes] = useState([]);
   // holds current image index for each space
   const [isHovered, setIsHovered] = useState(false);
-
+  // const [userId, setUserId] = useState("");
+  const [userwatchlist, setUserWatchlist] = useState(null);
+  const [userWatchlistSpaceIds, setUserWatchlsitSpaceIds] = useState(null);
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/profile")
+      .then((res) => {
+        setUserId(res.data._id);
+      })
+      .catch((err) => console.log(err));
+  }, []);
+  // console.log(userId);
   useEffect(() => {
     axios
       .get("http://localhost:5000/allspaces")
@@ -21,6 +32,17 @@ export default function TenantHome() {
       .catch((err) => console.log(err));
   }, []);
   console.log(spaces);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/watchlistspace")
+      .then((res) => setUserWatchlist(res.data))
+      .catch(console.log);
+  }, []);
+  console.log(userwatchlist);
+
+
+
   // Auto-slide every 3 seconds
   // useEffect(() => {
   //   if (!spaces || isHovered) return;
@@ -68,17 +90,6 @@ export default function TenantHome() {
     }
   });
 
-  function addWatchList(spaceInfo) {
-    let { spaceId, userId, spaceIndex } = spaceInfo;
-    setWatchlistStatus((prev) => ({
-      ...prev,
-      [spaceIndex]: !prev[spaceIndex], // toggle only the clicked one
-    }));
-    setAddToWatchlist({ userId, spaceId });
-  }
-  console.log(watchlistStatus);
-  console.log(addToWatchlist);
-
   console.log(spaces);
 
   useEffect(() => {
@@ -124,7 +135,7 @@ export default function TenantHome() {
         (error) => {
           console.error("Error getting location:", error.code, error.message);
           alert("Unable to retrieve your location.");
-        },
+        }, 
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
@@ -144,8 +155,8 @@ export default function TenantHome() {
   // console.log(userChooseFilter);
 
   //Radius check algorithm
-  
-  function getDistanceFromLatLon (lat1, lon1, lat2, lon2) {
+
+  function getDistanceFromLatLon(lat1, lon1, lat2, lon2) {
     const R = 6371; // radius of Earth in km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
@@ -161,61 +172,61 @@ export default function TenantHome() {
     return R * c; // distance in km
   }
 
-  let locationFilteredSpaces
+  let locationFilteredSpaces;
 
-function submitFilter() {
-  // close filter dialog after 1s
-  setTimeout(() => {
-    setFilterDialog((prev) => !prev);
-  }, 3000);
+  function submitFilter() {
+    // close filter dialog after 1s
+    setTimeout(() => {
+      setFilterDialog((prev) => !prev);
+    }, 3000);
 
-  let filtered = spaces; // start with all spaces
+    let filtered = spaces; // start with all spaces
 
-  // ---- LOCATION FILTER ----
-  if (userChooseFilter.location) {
-    const [lat, lon] = userChooseFilter.location.split(",").map(Number);
+    // ---- LOCATION FILTER ----
+    if (userChooseFilter.location) {
+      const [lat, lon] = userChooseFilter.location.split(",").map(Number);
 
-    filtered = filtered.filter((item) => {
-      if (!item?.exactPosition) return false; // skip if missing location
-      const [itemLat, itemLon] = item.exactPosition.split(",").map(Number);
-      const distance = getDistanceFromLatLon(lat, lon, itemLat, itemLon);
-      return distance <=5;
-    });
+      filtered = filtered.filter((item) => {
+        if (!item?.exactPosition) return false; // skip if missing location
+        const [itemLat, itemLon] = item.exactPosition.split(",").map(Number);
+        const distance = getDistanceFromLatLon(lat, lon, itemLat, itemLon);
+        return distance <= 5;
+      });
+    }
+
+    // ---- TYPE + PRICE FILTER ----
+    if (userChooseFilter.spacetype || userChooseFilter.pricerange) {
+      filtered = filtered.filter((item) => {
+        const matchType = userChooseFilter.spacetype
+          ? item.spacetype === userChooseFilter.spacetype
+          : true;
+
+        let matchPrice = true;
+        if (userChooseFilter.pricerange === "less than 6k") {
+          matchPrice = item.rent < 6000;
+        } else if (userChooseFilter.pricerange === "between 6k & 10k") {
+          matchPrice = item.rent >= 6000 && item.rent < 10000;
+        } else if (userChooseFilter.pricerange === "between 10k & 15k") {
+          matchPrice = item.rent >= 10000 && item.rent < 15000;
+        } else if (userChooseFilter.pricerange === "more than 15k") {
+          matchPrice = item.rent >= 15000;
+        }
+
+        return matchType && matchPrice;
+      });
+    }
+
+    // ---- UPDATE STATE ----
+    setFilteredSpaces(filtered);
+
+    // ---- FEEDBACK IF EMPTY ----
+    if (filtered.length === 0) {
+      setFilterFeedback(true);
+      setTimeout(() => setFilterFeedback(false), 2000);
+    }
   }
+  console.log("here we are:", filteredSpaces);
 
-  // ---- TYPE + PRICE FILTER ----
-  if (userChooseFilter.spacetype || userChooseFilter.pricerange) {
-    filtered = filtered.filter((item) => {
-      const matchType = userChooseFilter.spacetype
-        ? item.spacetype === userChooseFilter.spacetype
-        : true;
-
-      let matchPrice = true;
-      if (userChooseFilter.pricerange === "less than 6k") {
-        matchPrice = item.rent < 6000;
-      } else if (userChooseFilter.pricerange === "between 6k & 10k") {
-        matchPrice = item.rent >= 6000 && item.rent < 10000;
-      } else if (userChooseFilter.pricerange === "between 10k & 15k") {
-        matchPrice = item.rent >= 10000 && item.rent < 15000;
-      } else if (userChooseFilter.pricerange === "more than 15k") {
-        matchPrice = item.rent >= 15000;
-      }
-
-      return matchType && matchPrice;
-    });
-  }
-
-  // ---- UPDATE STATE ----
-  setFilteredSpaces(filtered);
-
-  // ---- FEEDBACK IF EMPTY ----
-  if (filtered.length === 0) {
-    setFilterFeedback(true);
-    setTimeout(() => setFilterFeedback(false),2000);
-  }
-}
-  console.log('here we are:',filteredSpaces)
-  
   function resetFilter() {
     setFilteredSpaces("");
     setUserChoose(() => {
@@ -473,34 +484,13 @@ function submitFilter() {
                 </button>
 
                 <div className="p-2">
-                  <div
-                    className="flex justify-end"
-                    onClick={() => {
-                      if (!watchlistStatus[spaceIndex]) {
-                        addWatchList({
-                          spaceId: spaces[spaceIndex]._id,
-                          userId: spaces[spaceIndex].userid,
-                          spaceIndex,
-                        });
-                      }
-                    }}
-                    style={{
-                      cursor: watchlistStatus[spaceIndex]
-                        ? "default"
-                        : "pointer",
-                    }}
-                  >
-                    <img
-                      src={
-                        watchlistStatus[spaceIndex]
-                          ? "/icons8-heart-fill-96.png"
-                          : " /icons8-heart-96.png"
-                      }
-                      width={35}
-                      height={35}
-                      alt="add to watchlist"
-                    />
-                  </div>
+                  {userwatchlist?.some(item=>item.spaceId===space._id) &&
+                  (
+                    <div className="p-1 bg-stone-500 text-white text-lg font-semibold rounded-lg w-[25%] text-center">Interested</div>
+                  )
+
+                  }
+                
                   <Link
                     to={`/role/${role.tenant}/${space._id}`}
                     state={{ index: spaceIndex }}

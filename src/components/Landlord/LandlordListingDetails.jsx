@@ -6,17 +6,20 @@ export default function LandlordListingDetails() {
   const [specificHandleUpdateDetail, setSpecificHandleUpdateDetail] = useState(
     []
   );
-  let photos=JSON.parse(JSON.stringify(specificHandleUpdateDetail?.photos || []))
+  let photos = JSON.parse(
+    JSON.stringify(specificHandleUpdateDetail?.photos || [])
+  );
   // const [newPhotos,setNewPhotos]=useState()
   // console.log(manuplatePhotos)
-  console.log(photos)
+  console.log(photos);
 
   const naviagteToList = useNavigate();
   const reloadUpdate = useNavigate();
   const [feedback, setFeedback] = useState({
     deleteFeedback: "",
     updateFeedback: "",
-    photoFeedback:''
+    photoFeedback: "",
+    validationFeedback: "",
   });
   // console.log(feedback)
   if (specificHandleUpdateDetail.length < 0) {
@@ -64,9 +67,9 @@ export default function LandlordListingDetails() {
     airCondition: false,
     parkingTwoWheeler: false,
     parkingFourWheeler: false,
-    photos:[]
+    photos: [],
   });
-  console.log(updateDetail.photos)
+  console.log(updateDetail.photos);
   // console.log(updateDetail);
 
   function handleUpdateDetail(event) {
@@ -79,19 +82,47 @@ export default function LandlordListingDetails() {
     });
   }
 
+  console.log(updateDetail);
   function updateSpace() {
     console.log("heree");
+    if (
+      (updateDetail.s_phone &&
+        (isNaN(Number(updateDetail.s_phone)) ||
+          String(updateDetail.s_phone).length !== 10)) ||
+      (updateDetail.s_rent &&
+        (isNaN(Number(updateDetail.s_rent)) || updateDetail.s_rent <= 0))
+    ) {
+      setFeedback((prev) => ({
+        ...prev,
+        validationFeedback: "Invalid credentials",
+      }));
+      return;
+    } else {
+      setFeedback((prev) => {
+        return {
+          ...prev,
+          validationFeedback: "",
+        };
+      });
+    }
     axios
       .put("http://localhost:5000/updateSpaceDetails", updateDetail)
       .then((res) => {
-        console.log("then", res);
-        console.log("good msg");
-        naviagteToList(`/role/landlord/listing/${spaceId}`);
-        // },2000)
+        console.log("update space then", res);
+        setFeedback((prev) => {
+          return {
+            ...prev,
+            updateFeedback: "Updated",
+          };
+        });
+        setTimeout(() => {
+          naviagteToList(`/role/landlord/listing/${spaceId}`);
+        }, 2000);
       })
       .catch((err) => console.log("error on update  catch", err));
   }
 
+  // This function handles the deletion of a space and its associated watchlist data.
   function deleteSpace() {
     console.log("delspac");
     axios
@@ -111,6 +142,7 @@ export default function LandlordListingDetails() {
         setTimeout(() => {
           naviagteToList("/role/landlord/listing");
         }, 2000);
+        console.log("room get deleted from ");
       })
       .catch((err) => console.log("error on delete space", err));
   }
@@ -124,42 +156,42 @@ export default function LandlordListingDetails() {
     }));
   }
   // console.log(manuplatePhotos);
-  //  let combinedPhotos=[...photos, ...updateDetail.photos] 
+  //  let combinedPhotos=[...photos, ...updateDetail.photos]
   // const [combinedPhotos, setCombinedPhotos]=useState([...photos,...updateDetail.photos])
-  function updatePhoto(e){
-    const newfiles=Array.from(e.target.files)
-    const newPhotoUrl=newfiles.map((file)=>URL.createObjectURL(file))
-    
+  function updatePhoto(e) {
+    const newfiles = Array.from(e.target.files);
+    const newPhotoUrl = newfiles.map((file) => URL.createObjectURL(file));
+
     // if(updateDetail.photos.length + photos.length <= 4){
-      setUpdateDetail((prev)=>{
-      return{
+    setUpdateDetail((prev) => {
+      return {
         ...prev,
-        photos:newfiles
-      }
-    })
+        photos: newfiles,
+      };
+    });
     // }
-  //   else{
-  //       setFeedback((prev)=>{ 
-  //         return {
-  //           ...prev,
-  //           photoFeedback:'Delete photos before adding'
-  //         }
-  //       })
-  //   }
+    //   else{
+    //       setFeedback((prev)=>{
+    //         return {
+    //           ...prev,
+    //           photoFeedback:'Delete photos before adding'
+    //         }
+    //       })
+    //   }
   }
 
   // let combinedPhotos=[...photos,...newPhotos]
 
-  useEffect(()=>{
-    setTimeout(()=>{
-     setFeedback((prev)=>{
-      return {
-        ...prev,
-        photoFeedback:''
-      }
-     })
-    },2000)
-  },[feedback.photoFeedback])
+  useEffect(() => {
+    setTimeout(() => {
+      setFeedback((prev) => {
+        return {
+          ...prev,
+          photoFeedback: "",
+        };
+      });
+    }, 2000);
+  }, [feedback.photoFeedback]);
   // console.log(newPhotos)
   // console.log(specificHandleUpdateDetail.photos)
   return (
@@ -370,17 +402,30 @@ export default function LandlordListingDetails() {
               <label htmlFor="on-tap-water">On-tap Water</label>
             </div>
 
-            <div className="flex gap-x-2 text-lg">
+             <div className="flex gap-x-2 text-lg">
+               <input
+               type="checkbox"
+                 id="wifi"
+                 name="wifi"
+                 checked={handleUpdateDetail.wifi}
+                 onChange={handleUpdateDetail}
+                 className="scale-150"
+               />
+               <label htmlFor="wifi">Wifi</label>
+             </div> 
+            {/* <label>
               <input
                 type="checkbox"
-                id="wifi"
-                name="wifi"
-                checked={handleUpdateDetail.wifi}
-                onChange={handleUpdateDetail}
-                className="scale-150"
+                checked={updateDetail.wifi}
+                onChange={(e) =>
+                  setUpdateDetail((prev) => ({
+                    ...prev,
+                    wifi: e.target.checked,
+                  }))
+                }
               />
-              <label htmlFor="wifi">Wifi</label>
-            </div>
+              Wi-Fi
+            </label> */}
 
             <div className="flex gap-x-2 text-lg">
               <input
@@ -441,6 +486,7 @@ export default function LandlordListingDetails() {
               />
               <label htmlFor="parking-four-wheeler">Parking Four-Wheeler</label>
             </div>
+            <p className="text-xl font-semibold mt-2 italic bg-stone-300 p-1 rounded-lg">Note: Must select amenities while updating</p>
           </div>
 
           <div className="mb-2">
@@ -485,14 +531,20 @@ export default function LandlordListingDetails() {
             <label
               htmlFor="fileUpload"
               className="border-3 border-zinc-400 outline-none p-2 w-[100%] rounded-lg text-lg italic cursor-pointer"
-              
             >
               Click to upload photos
             </label>
-            <input id="fileUpload" type="file" multiple className="hidden" onChange={updatePhoto} />
-            <p className="text-xl font-semibold text-red-500 mt-2">{feedback.photoFeedback}</p>
+            <input
+              id="fileUpload"
+              type="file"
+              multiple
+              className="hidden"
+              onChange={updatePhoto}
+            />
+            <p className="text-xl font-semibold text-red-500 mt-2">
+              {feedback.photoFeedback}
+            </p>
           </div>
-          
 
           <div className="mb-2">
             <div className="flex justify-center w-full pb-15">
@@ -504,7 +556,7 @@ export default function LandlordListingDetails() {
                         <img
                           key={index}
                           src={`http://localhost:5000${photo}`}
-                          // 
+                          //
                           className="w-113 h-auto object-contain border-3 border-gray-400 rounded-xl"
                         />
                         <button
@@ -518,14 +570,14 @@ export default function LandlordListingDetails() {
                   );
                 })}
 
-                {updateDetail?.photos.map((photo,index)=>{
+                {updateDetail?.photos.map((photo, index) => {
                   return (
                     <div className="relative">
                       <div className="" key={index}>
                         <img
                           key={index}
                           src={URL.createObjectURL(photo)}
-                          // 
+                          //
                           className="w-113 h-auto object-contain border-3 border-gray-400 rounded-xl"
                         />
                         <button
@@ -536,7 +588,7 @@ export default function LandlordListingDetails() {
                         </button>
                       </div>
                     </div>
-                  )
+                  );
                 })}
 
                 {/* {specificHandleUpdateDetail.photos?.map((photo, index) => {
@@ -572,6 +624,9 @@ export default function LandlordListingDetails() {
               {feedback.updateFeedback}
             </p>
           )}
+          <p className="mb-1 text-xl font-semibold text-red-500">
+            {feedback?.validationFeedback || ""}
+          </p>
           <div className="flex gap-x-7 mt-5">
             <button
               className="border border-green-500 px-4.5 py-1.5 bg-green-400 rounded-lg cursor-pointer text-white font-semibold font-xl hover:shadow-sm shadow-slate-500 active:scale-90 transition ease-in"

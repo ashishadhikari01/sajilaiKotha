@@ -1,5 +1,5 @@
 import React from "react"
-import SideBar from "./sideBar"
+// import SideBar from "./sideBar"
 import { useParams } from "react-router-dom"
 import Layout from "./SystemLayout"
 

@@ -409,6 +409,7 @@ export default function LandlordDashboard() {
               placeholder="No location marked"
               value={spaceDetail.exactPosition}
             />
+            <p className="text-xl font-semibold mt-2 italic bg-stone-300 p-1 rounded-lg">Add with caution,exact location cannot be updated later</p>
           </div>
 
           {/* <div className="w-[40%] mx-[10%]">

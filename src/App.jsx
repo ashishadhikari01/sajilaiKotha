@@ -17,10 +17,12 @@ import TenantHome from "./components/Tenant/TenantHome";
 import TenantAccount from "./components/Tenant/TenantAccount";
 import TenantLogout from "./components/Tenant/TenantLogout";
 import TenantSpaceDetail from "./components/Tenant/TenantSpaceDetail"
+// import PotentialTenant from "./components/Landlord/PotentialTenant";
 
 import LandlordHome from "./components/Landlord/LandlordDashboard";
 import LandlordListing from "./components/Landlord/LandlordListing";
 import LandlordListingDetails from "./components/Landlord/LandlordListingDetails"
+import PotentialTenant from "./components/Landlord/PotentialTenant";
 
 function App() {
   // const location=useLocation()
@@ -55,7 +57,9 @@ function App() {
 
             <Route path="/role/:role/dashboard" element={<LandlordHome />} />
             <Route path="/role/:role/listing" element={<LandlordListing />} />
+            <Route path="/role/:role/potentialtenant" element={<PotentialTenant/>}/>
             <Route path="/role/:role/listing/:item_id" element={<LandlordListingDetails/>}/>
+            
           </Route>
         </Route>
         </Routes>

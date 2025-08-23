@@ -36,9 +36,19 @@ export default function SideBar() {
                 className="font-bold text-lg px-6 py-2 hover:bg-stone-300 rounded-lg"
               >
                 {role === "tenant" && "watchlist"}
-                {role === "landlord" && "Listed"}
+                {role === "landlord" && "Listed spaces"}
               </Link>
+              
+              {
+                role==='landlord' &&
+                 <Link 
+               to={role==='landlord' && `/role/${role}/potentialtenant`}
+               className="font-bold text-lg px-6 py-2 hover:bg-stone-300 rounded-lg"
+              >Potential Tenant</Link>
+              }
 
+               {/* {role === "landlord" && "Interested Tenant"}</ */}
+             
               
               <Link
                   to={
