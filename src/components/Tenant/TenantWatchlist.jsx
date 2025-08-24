@@ -48,10 +48,10 @@ export default function TenantHome() {
                     SpaceId: {item.spaceId}
                   </p>
                   <p className="text-xl font-semibold italic">
-                    Location: {item.spaceDetail.address}
+                    Location: {item?.spaceDetail?.address}
                   </p>
                   <p className="text-xl font-semibold italic">
-                    Price: {item.spaceDetail.rent}
+                    Price: {item.spaceDetail?.rent}
                   </p>
                 </div>
 

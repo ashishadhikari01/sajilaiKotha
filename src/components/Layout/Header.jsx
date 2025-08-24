@@ -9,9 +9,9 @@ export default function Header() {
   }
   return (
     <>
-      <div className="h-20 bg-[#cacaca]" ref={navBarRef}>
+      <div className="h-20 bg-gray-300" ref={navBarRef}>
         <nav className="w-[90%] mx-auto flex justify-between items-center h-full">
-          <Link className="text-xl font-bold" to="/">Sajilai Kotha</Link>
+          <Link className="text-2xl font-bold" to="/">Sajilai Kotha</Link>
           <div className="border border-[#C0C0C0] w-14 h-10 bg-white rounded-lg hover:shadow-[0.5px_0.5px_5px_2px_black] ">
             <a
               onClick={entrybtnClicked}
